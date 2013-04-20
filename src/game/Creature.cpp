@@ -405,6 +405,9 @@ bool Creature::UpdateEntry(uint32 Entry, Team team, const CreatureData* data /*=
             SetPvP(false);
     }
 
+    if (GetCreatureInfo()->unit_flags & UNIT_FLAG_PVP || GetCreatureInfo()->unit_flags & UNIT_FLAG_PVP_ATTACKABLE)
+        SetPvP(true);
+
     // Try difficulty dependend version before falling back to base entry
     CreatureTemplateSpells const* templateSpells = sCreatureTemplateSpellsStorage.LookupEntry<CreatureTemplateSpells>(GetCreatureInfo()->Entry);
     if (!templateSpells)
