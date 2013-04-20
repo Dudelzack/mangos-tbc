@@ -577,6 +577,9 @@ class MANGOS_DLL_SPEC ChatHandler
         bool HandleMmap(char* args);
         bool HandleMmapTestArea(char* args);
 
+        // Custom Rates system
+        bool HandleCustomRatesCommand(char* args);
+
         //! Development Commands
         bool HandleSaveAllCommand(char* args);
 

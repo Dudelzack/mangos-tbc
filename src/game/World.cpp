@@ -867,6 +867,10 @@ void World::LoadConfigSettings(bool reload)
     std::string ignoreMapIds = sConfig.GetStringDefault("mmap.ignoreMapIds", "");
     MMAP::MMapFactory::preventPathfindingOnMaps(ignoreMapIds.c_str());
     sLog.outString("WORLD: mmap pathfinding %sabled", getConfig(CONFIG_BOOL_MMAP_ENABLED) ? "en" : "dis");
+
+    setConfig(CONFIG_UINT32_DEFAULT_CUSTOM_XP_RATE, "CustomRates.Default", 1);
+    setConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE, "CustomRates.Max", 1);
+    setConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE_FIRST_CHAR, "CustomRates.MaxFirstChar", 1);
 }
 
 /// Initialize the World

@@ -2321,6 +2321,9 @@ void Player::GiveXP(uint32 xp, Unit* victim)
     if (level >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         return;
 
+    // Apply now custom XP rate, loaded from DB.
+    xp = xp * GetXpRate();
+
     // handle SPELL_AURA_MOD_XP_PCT auras
     Unit::AuraList const& ModXPPctAuras = GetAurasByType(SPELL_AURA_MOD_XP_PCT);
     for (Unit::AuraList::const_iterator i = ModXPPctAuras.begin(); i != ModXPPctAuras.end(); ++i)
@@ -14548,8 +14551,8 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
     //"resettalents_time, trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, online, death_expire_time, taxi_path, dungeon_difficulty,"
     // 39           40                41                42                    43          44          45              46           47              48
     //"arenaPoints, totalHonorPoints, todayHonorPoints, yesterdayHonorPoints, totalKills, todayKills, yesterdayKills, chosenTitle, watchedFaction, drunk,"
-    // 49      50      51      52      53      54      55             56              57      58           59
-    //"health, power1, power2, power3, power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars  FROM characters WHERE guid = '%u'", GUID_LOPART(m_guid));
+    // 49      50      51      52      53      54      55             56              57      58           59          60
+    //"health, power1, power2, power3, power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, xp_rate  FROM characters WHERE guid = '%u'", GUID_LOPART(m_guid));
     QueryResult* result = holder->GetResult(PLAYER_LOGIN_QUERY_LOADFROM);
 
     if (!result)
@@ -15056,6 +15059,20 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
         uint32 savedpower = fields[50+i].GetUInt32();
         SetPower(Powers(i), savedpower > GetMaxPower(Powers(i)) ? GetMaxPower(Powers(i)) : savedpower);
     }
+
+    // Load Custom XP rates
+    SetXpRate(fields[60].GetUInt8());
+    if (getLevel() == sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+        SetXpRate(sWorld.getConfig(CONFIG_UINT32_DEFAULT_CUSTOM_XP_RATE));
+    else if (GetXpRate() > sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE))
+    {
+        sLog.outError("Player %s has bad experience rates, setting his/her rates to default max: %u", GetName(), sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE));
+        if (HasCharacterAtMaxLevel())
+            SetXpRate(sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE));
+        else
+            SetXpRate(sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE_FIRST_CHAR)); // This is needed because if config settings are changed, we must update the user rates here.
+    }
+    DETAIL_LOG("Custom experience rate for player %s is: %u", m_name.c_str(), GetXpRate());
 
     DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS, "The value of player %s after load item and aura is: ", m_name.c_str());
     outDebugStatsValues();
@@ -16159,7 +16176,7 @@ void Player::SaveToDB()
                               "trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, "
                               "death_expire_time, taxi_path, arenaPoints, totalHonorPoints, todayHonorPoints, yesterdayHonorPoints, totalKills, "
                               "todayKills, yesterdayKills, chosenTitle, watchedFaction, drunk, health, power1, power2, power3, "
-                              "power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars) "
+                              "power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, xp_rate) "
                               "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, "
@@ -16167,7 +16184,7 @@ void Player::SaveToDB()
                               "?, ?, ?, ?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                              "?, ?, ?, ?, ?, ?, ?) ");
+                              "?, ?, ?, ?, ?, ?, ?, ?) ");
 
     uberInsert.addUInt32(GetGUIDLow());
     uberInsert.addUInt32(GetSession()->GetAccountId());
@@ -16293,6 +16310,9 @@ void Player::SaveToDB()
     uberInsert.addString(ss);
 
     uberInsert.addUInt32(uint32(GetByteValue(PLAYER_FIELD_BYTES, 2)));
+
+    // Custom rates system
+    uberInsert.addUInt32(uint32(GetXpRate()));
 
     uberInsert.Execute();
 
@@ -20927,3 +20947,18 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
 
     return AREA_LOCKSTATUS_OK;
 };
+
+// Custom Rates System
+bool Player::HasCharacterAtMaxLevel()
+{
+    bool hasCharAtMaxLevel = false;
+    QueryResult *result = CharacterDatabase.PQuery("SELECT COUNT(guid) FROM characters WHERE account = %u AND level = %u", GetSession()->GetAccountId(), sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL));
+    if (result)
+    {
+        Field *fields = result->Fetch();
+        if (fields[0].GetUInt8() > 0)
+            hasCharAtMaxLevel = true;
+        delete result;
+    }
+    return hasCharAtMaxLevel;
+}

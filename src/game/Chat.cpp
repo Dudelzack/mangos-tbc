@@ -780,6 +780,8 @@ ChatCommand* ChatHandler::getCommandTable()
         { "waterwalk",      SEC_GAMEMASTER,     false, &ChatHandler::HandleWaterwalkCommand,           "", NULL },
         { "quit",           SEC_CONSOLE,        true,  &ChatHandler::HandleQuitCommand,                "", NULL },
         { "mmap",           SEC_GAMEMASTER,     false, NULL,                                           "", mmapCommandTable },
+        // Custom rates system
+        { "rates",          SEC_PLAYER,         false, &ChatHandler::HandleCustomRatesCommand,         "", NULL },
 
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };

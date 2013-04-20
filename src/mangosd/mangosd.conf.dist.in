@@ -1629,3 +1629,25 @@ SOAP.Port = 7878
 CharDelete.Method = 0
 CharDelete.MinLevel = 0
 CharDelete.KeepDays = 30
+
+###################################################################################################################
+# PER CHARACTER CUSTOM EXPERIENCE RATES SYSTEM
+#
+#    CustomRates.Default
+#        Default rates for character at first login
+#        Default: 1
+#
+#    CustomRates.Max
+#        Maximun rates selectable by players
+#        Default: 1
+#
+#   CustomRates.MaxFirstChar
+#        Maximun rates selectable by players when the account has only one character. This can help against multi accounts.
+#        Default: 1
+#
+# NOTE: This values are going to be multiplied by normal rates in previous config options. Be carefull.
+#
+###################################################################################################################
+CustomRates.Default      = 1
+CustomRates.Max          = 1
+CustomRates.MaxFirstChar = 1

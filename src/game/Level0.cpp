@@ -292,3 +292,53 @@ bool ChatHandler::HandleServerMotdCommand(char* /*args*/)
     PSendSysMessage(LANG_MOTD_CURRENT, sWorld.GetMotd());
     return true;
 }
+
+bool ChatHandler::HandleCustomRatesCommand(char* args)
+{
+    Player *plr = m_session->GetPlayer();
+    if (!plr)
+        return false;
+
+    if (sWorld.getConfig(CONFIG_UINT32_DEFAULT_CUSTOM_XP_RATE) == sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE))
+    {
+        PSendSysMessage(LANG_CUSTOM_RATES_DISABLED);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    if (plr->getLevel() >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+    {
+        PSendSysMessage(LANG_CUSTOM_RATES_CHARACTER_MAX_LEVEL, plr->GetName());
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    if (!*args)
+    {
+        PSendSysMessage(LANG_CUSTOM_RATES_CHANGED, plr->GetName(), plr->GetXpRate());
+        return false;
+    }
+
+    uint8 newRates = (uint8)atof(args);
+    if (newRates > sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE) || newRates < 1)
+    {
+        SendSysMessage(LANG_BAD_VALUE);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    if (newRates > sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE_FIRST_CHAR))
+    {
+        if (!plr->HasCharacterAtMaxLevel())
+        {
+            PSendSysMessage(LANG_CUSTOM_RATES_CHARACTER_MAX_LEVEL_NEEDED, sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE_FIRST_CHAR));
+            SetSentErrorMessage(true);
+            return false;
+        }
+    }
+
+    plr->SetXpRate(newRates);
+    PSendSysMessage(LANG_CUSTOM_RATES_XP_SET, plr->GetName(), newRates);
+    
+    return true;
+}

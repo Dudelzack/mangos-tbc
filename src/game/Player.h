@@ -2147,6 +2147,11 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool HasTitle(CharTitlesEntry const* title) const { return HasTitle(title->bit_index); }
         void SetTitle(CharTitlesEntry const* title, bool lost = false);
 
+        // Custom rates system
+        uint8 GetXpRate() { return m_xpRate; }
+        void SetXpRate(uint8 xp) { m_xpRate = xp; }
+        bool HasCharacterAtMaxLevel();
+
     protected:
 
         uint32 m_contestedPvPTimer;
@@ -2351,6 +2356,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         float  m_summon_z;
 
         DeclinedName* m_declinedname;
+
+        // Custom Rates System
+        uint8 m_xpRate;
+
     private:
         // internal common parts for CanStore/StoreItem functions
         InventoryResult _CanStoreItem_InSpecificSlot(uint8 bag, uint8 slot, ItemPosCountVec& dest, ItemPrototype const* pProto, uint32& count, bool swap, Item* pSrcItem) const;
