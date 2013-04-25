@@ -1651,3 +1651,46 @@ CharDelete.KeepDays = 30
 CustomRates.Default      = 1
 CustomRates.Max          = 1
 CustomRates.MaxFirstChar = 1
+
+###################################################################################################################
+# STEEL GAMERS PREMIUM ACCOUNT SYSTEM
+# This system increments some rewards if the account of the player is "premium". Premium status is given when 
+# contributing to the community in an outstanding way.
+#
+#   PremiumAccount.Enabled
+#       Default: 0
+#
+#   PremiumAccount.MaxXpRate
+#       XP rate limit for premium members (REQUIRES CUSTOM RATES SYSTEM)
+#       Default: 1
+#
+#   PremiumAccount.MaxXpRateFirstChar
+#       XP rate limit of first character for premium members (REQUIRES CUSTOM RATES SYSTEM)
+#       Default: 1
+#
+#   PremiumAccount.GoldBonus
+#       Bonus multiplier for gold gains.
+#       Default: 1
+#
+#   PremiumAccount.ReputationBonus
+#       Bonus multiplier for reputation gains.
+#       Default: 1
+#
+#   PremiumAccount.HonorBonus
+#       Bonus multiplier for honor gains.
+#       Default: 1
+#
+#   PremiumAccount.ArenaPointsBonus
+#       Bonus multiplier for arena points gains.
+#       Default: 1
+#
+# NOTE: This values are going to be multiplied by normal rates in previous config options. Be carefull.
+#
+###################################################################################################################
+PremiumAccount.Enabled            = 0
+PremiumAccount.MaxXpRate          = 1
+PremiumAccount.MaxXpRateFirstChar = 1
+PremiumAccount.GoldBonus          = 1
+PremiumAccount.ReputationBonus    = 1
+PremiumAccount.HonorBonus         = 1
+PremiumAccount.ArenaPointsBonus   = 1

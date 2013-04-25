@@ -1027,6 +1027,9 @@ enum MangosStrings
     LANG_CUSTOM_RATES_CHANGED                    = 11002,
     LANG_CUSTOM_RATES_XP_SET                     = 11003,
     LANG_CUSTOM_RATES_CHARACTER_MAX_LEVEL_NEEDED = 11004,
+    // Premium account system
+    LANG_PREMIUM_ACCOUNT_ACTIVE                  = 12000,
+    LANG_PREMIUM_QUEST_REWARD                    = 12001,
 
     // NOT RESERVED IDS                   12000-1999999999
     // `db_script_string` table index     2000000000-2000009999 (MIN_DB_SCRIPT_STRING_ID-MAX_DB_SCRIPT_STRING_ID)

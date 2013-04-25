@@ -868,9 +868,18 @@ void World::LoadConfigSettings(bool reload)
     MMAP::MMapFactory::preventPathfindingOnMaps(ignoreMapIds.c_str());
     sLog.outString("WORLD: mmap pathfinding %sabled", getConfig(CONFIG_BOOL_MMAP_ENABLED) ? "en" : "dis");
 
+    // Custom rates system
     setConfig(CONFIG_UINT32_DEFAULT_CUSTOM_XP_RATE, "CustomRates.Default", 1);
     setConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE, "CustomRates.Max", 1);
     setConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE_FIRST_CHAR, "CustomRates.MaxFirstChar", 1);
+    // Premium account system
+    setConfig(CONFIG_BOOL_PREMIUM_ACCOUNT_SYSTEM_ENABLED, "PremiumAccount.Enabled", false);
+    setConfig(CONFIG_UINT32_PREMIUM_MAX_CUSTOM_XP_RATE, "PremiumAccount.MaxXpRate", 1);
+    setConfig(CONFIG_UINT32_PREMIUM_MAX_CUSTOM_XP_RATE_FIRST_CHAR, "PremiumAccount.MaxXpRateFirstChar", 1);
+    setConfig(CONFIG_UINT32_PREMIUM_GOLD_BONUS, "PremiumAccount.GoldBonus", 1);
+    setConfig(CONFIG_UINT32_PREMIUM_REPUTATION_BONUS, "PremiumAccount.ReputationBonus", 1);
+    setConfig(CONFIG_UINT32_PREMIUM_HONOR_BONUS, "PremiumAccount.HonorBonus", 1);
+    setConfig(CONFIG_UINT32_PREMIUM_ARENAPOINTS_BONUS, "PremiumAccount.ArenaPointsBonus", 1);
 }
 
 /// Initialize the World

@@ -815,8 +815,34 @@ int WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     SqlStatement stmt = LoginDatabase.CreateStatement(updAccount, "UPDATE account SET last_ip = ? WHERE username = ?");
     stmt.PExecute(address.c_str(), account.c_str());
 
+    // Premium account system
+    QueryResult* premiumResult =
+        //                           0              1            2           3                 4            5            6
+        LoginDatabase.PQuery("SELECT premium_start, premium_end, gold_bonus, reputation_bonus, honor_bonus, arena_bonus, active FROM account_premium WHERE account = %u AND active = 1 AND premium_end > UNIX_TIMESTAMP()",
+                             id);
+    
+    bool isPremium = false;
+    bool hasGoldPremiumBonus = false;
+    bool hasReputationPremiumBonus = false;
+    bool hasHonorPremiumBonus = false;
+    bool hasArenaPointsPremiumBonus = false;
+    if (premiumResult)
+    {
+        Field* premiumFields = premiumResult->Fetch();
+        isPremium = true;
+        if (premiumFields[2].GetUInt8())
+            hasGoldPremiumBonus = true;
+        if (premiumFields[3].GetUInt8())
+            hasReputationPremiumBonus = true;
+        if (premiumFields[4].GetUInt8())
+            hasHonorPremiumBonus = true;
+        if (premiumFields[5].GetUInt8())
+            hasArenaPointsPremiumBonus = true;
+        delete premiumResult;
+    }
+
     // NOTE ATM the socket is single-threaded, have this in mind ...
-    ACE_NEW_RETURN(m_Session, WorldSession(id, this, AccountTypes(security), expansion, mutetime, locale), -1);
+    ACE_NEW_RETURN(m_Session, WorldSession(id, this, AccountTypes(security), expansion, mutetime, locale, isPremium, hasGoldPremiumBonus, hasReputationPremiumBonus, hasHonorPremiumBonus, hasArenaPointsPremiumBonus), -1);
 
     m_Crypt.Init(&K);
 

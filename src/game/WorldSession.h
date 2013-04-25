@@ -147,7 +147,7 @@ class MANGOS_DLL_SPEC WorldSession
         friend class CharacterHandler;
 
     public:
-        WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale);
+        WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, bool isPremium, bool hasPremiumBonusGold, bool hasPremiumBonusReputation, bool hasPremiumBonusHonor, bool hasPremiumBonusArenaPoints);
         ~WorldSession();
 
         bool PlayerLoading() const { return m_playerLoading; }
@@ -312,6 +312,13 @@ class MANGOS_DLL_SPEC WorldSession
         void SendKnockBack(float angle, float horizontalSpeed, float verticalSpeed);
         void SendPlaySpellVisual(ObjectGuid guid, uint32 spellArtKit);
         void SendItemPageInfo(ItemPrototype* itemProto);
+
+        // Premium account system
+        bool IsPremium() { return m_isPremium; };
+        bool HasGoldPremiumBonus() { return m_premiumBonusGold; };
+        bool HasReputationPremiumBonus() { return m_premiumBonusReputation; };
+        bool HasHonorPremiumBonus() { return m_premiumBonusHonor; };
+        bool HasArenaPointsPremiumBonus() { return m_premiumBonusArenaPoints; };
 
     public:                                                 // opcodes handlers
 
@@ -772,6 +779,13 @@ class MANGOS_DLL_SPEC WorldSession
         uint32 m_Tutorials[8];
         TutorialDataState m_tutorialState;
         ACE_Based::LockedQueue<WorldPacket*, ACE_Thread_Mutex> _recvQueue;
+
+        // Premium account system
+        bool m_isPremium;
+        bool m_premiumBonusGold;
+        bool m_premiumBonusReputation;
+        bool m_premiumBonusHonor;
+        bool m_premiumBonusArenaPoints;
 };
 #endif
 /// @}

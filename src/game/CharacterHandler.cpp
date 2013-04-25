@@ -543,6 +543,12 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
             ++linecount;
         }
 
+        if (sWorld.getConfig(CONFIG_BOOL_PREMIUM_ACCOUNT_SYSTEM_ENABLED) && pCurrChar->GetSession()->IsPremium())
+        {
+            data << std::string(GetMangosString(LANG_PREMIUM_ACCOUNT_ACTIVE));
+            ++linecount;
+        }
+        
         data.put(0, linecount);
 
         SendPacket(&data);

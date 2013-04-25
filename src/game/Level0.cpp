@@ -320,20 +320,37 @@ bool ChatHandler::HandleCustomRatesCommand(char* args)
     }
 
     uint8 newRates = (uint8)atof(args);
-    if (newRates > sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE) || newRates < 1)
+    if ((newRates > sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE) && !m_session->IsPremium())
+        || (newRates > sWorld.getConfig(CONFIG_UINT32_PREMIUM_MAX_CUSTOM_XP_RATE) && m_session->IsPremium())
+        || newRates < 1)
     {
         SendSysMessage(LANG_BAD_VALUE);
         SetSentErrorMessage(true);
         return false;
     }
 
-    if (newRates > sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE_FIRST_CHAR))
+    if (m_session->IsPremium() && sWorld.getConfig(CONFIG_BOOL_PREMIUM_ACCOUNT_SYSTEM_ENABLED))
     {
-        if (!plr->HasCharacterAtMaxLevel())
+        if (newRates > sWorld.getConfig(CONFIG_UINT32_PREMIUM_MAX_CUSTOM_XP_RATE_FIRST_CHAR))
         {
-            PSendSysMessage(LANG_CUSTOM_RATES_CHARACTER_MAX_LEVEL_NEEDED, sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE_FIRST_CHAR));
-            SetSentErrorMessage(true);
-            return false;
+            if (!plr->HasCharacterAtMaxLevel())
+            {
+                PSendSysMessage(LANG_CUSTOM_RATES_CHARACTER_MAX_LEVEL_NEEDED, sWorld.getConfig(CONFIG_UINT32_PREMIUM_MAX_CUSTOM_XP_RATE_FIRST_CHAR));
+                SetSentErrorMessage(true);
+                return false;
+            }
+        }
+    }
+    else
+    {
+        if (newRates > sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE_FIRST_CHAR))
+        {
+            if (!plr->HasCharacterAtMaxLevel())
+            {
+                PSendSysMessage(LANG_CUSTOM_RATES_CHARACTER_MAX_LEVEL_NEEDED, sWorld.getConfig(CONFIG_UINT32_MAX_CUSTOM_XP_RATE_FIRST_CHAR));
+                SetSentErrorMessage(true);
+                return false;
+            }
         }
     }
 

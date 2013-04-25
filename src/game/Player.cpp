@@ -5997,6 +5997,10 @@ int32 Player::CalculateReputationGain(ReputationSource source, int32 rep, int32 
         percent *= repRate;
     }
 
+    // Premium account system - apply bonus (only if is a reputation gain, not a loss)
+    if (sWorld.getConfig(CONFIG_BOOL_PREMIUM_ACCOUNT_SYSTEM_ENABLED) && GetSession()->IsPremium() && GetSession()->HasReputationPremiumBonus() && rep > 0)
+        rep *= sWorld.getConfig(CONFIG_UINT32_PREMIUM_REPUTATION_BONUS);
+
     return int32(sWorld.getConfig(CONFIG_FLOAT_RATE_REPUTATION_GAIN) * rep * percent / 100.0f);
 }
 
@@ -6251,6 +6255,10 @@ void Player::SetArenaPoints(uint32 value)
 
 void Player::ModifyHonorPoints(int32 value)
 {
+    // Premium account system - apply bonus
+    if (sWorld.getConfig(CONFIG_BOOL_PREMIUM_ACCOUNT_SYSTEM_ENABLED) && GetSession()->IsPremium() && GetSession()->HasHonorPremiumBonus())
+        value *= sWorld.getConfig(CONFIG_UINT32_PREMIUM_HONOR_BONUS);
+
     int32 newValue = (int32)GetHonorPoints() + value;
 
     if (newValue < 0)
@@ -6261,6 +6269,10 @@ void Player::ModifyHonorPoints(int32 value)
 
 void Player::ModifyArenaPoints(int32 value)
 {
+    // Premium account system - apply bonus
+    if (sWorld.getConfig(CONFIG_BOOL_PREMIUM_ACCOUNT_SYSTEM_ENABLED) && GetSession()->IsPremium() && GetSession()->HasArenaPointsPremiumBonus())
+        value *= sWorld.getConfig(CONFIG_UINT32_PREMIUM_HONOR_BONUS);
+
     int32 newValue = (int32)GetArenaPoints() + value;
 
     if (newValue < 0)
@@ -7660,7 +7672,11 @@ void Player::SendLoot(ObjectGuid guid, LootType loot_type)
                     loot->FillLoot(0, LootTemplates_Creature, this, false);
                 // It may need a better formula
                 // Now it works like this: lvl10: ~6copper, lvl70: ~9silver
-                bones->loot.gold = (uint32)(urand(50, 150) * 0.016f * pow(((float)pLevel) / 5.76f, 2.5f) * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY));
+                // Premium account system - apply bonus
+                if (sWorld.getConfig(CONFIG_BOOL_PREMIUM_ACCOUNT_SYSTEM_ENABLED) && GetSession()->IsPremium() && GetSession()->HasGoldPremiumBonus())
+                    bones->loot.gold = (uint32)(urand(50, 150) * 0.016f * pow(((float)pLevel) / 5.76f, 2.5f) * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY) * sWorld.getConfig(CONFIG_UINT32_PREMIUM_GOLD_BONUS));
+                else
+                    bones->loot.gold = (uint32)(urand(50, 150) * 0.016f * pow(((float)pLevel) / 5.76f, 2.5f) * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY));
             }
 
             if (bones->lootRecipient != this)
@@ -7701,7 +7717,11 @@ void Player::SendLoot(ObjectGuid guid, LootType loot_type)
                     // Generate extra money for pick pocket loot
                     const uint32 a = urand(0, creature->getLevel() / 2);
                     const uint32 b = urand(0, getLevel() / 2);
-                    loot->gold = uint32(10 * (a + b) * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY));
+                    // Premium account system - apply bonus
+                    if (sWorld.getConfig(CONFIG_BOOL_PREMIUM_ACCOUNT_SYSTEM_ENABLED) && GetSession()->IsPremium() && GetSession()->HasGoldPremiumBonus())
+                        loot->gold = uint32(10 * (a + b) * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY) * sWorld.getConfig(CONFIG_UINT32_PREMIUM_GOLD_BONUS));
+                    else
+                        loot->gold = uint32(10 * (a + b) * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY));
                     permission = OWNER_PERMISSION;
                 }
             }
@@ -13241,10 +13261,20 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
     if (getLevel() < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         GiveXP(xp , NULL);
     else
-        ModifyMoney(int32(pQuest->GetRewMoneyMaxLevel() * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY)));
+    {
+        // Premium account system - apply bonus
+        if (sWorld.getConfig(CONFIG_BOOL_PREMIUM_ACCOUNT_SYSTEM_ENABLED) && GetSession()->IsPremium() && GetSession()->HasGoldPremiumBonus())
+            ModifyMoney(int32(pQuest->GetRewMoneyMaxLevel() * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY) * sWorld.getConfig(CONFIG_UINT32_PREMIUM_GOLD_BONUS)));
+        else
+            ModifyMoney(int32(pQuest->GetRewMoneyMaxLevel() * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY)));
+    }
 
     // Give player extra money if GetRewOrReqMoney > 0 and get ReqMoney if negative
-    ModifyMoney(pQuest->GetRewOrReqMoney());
+    // Premium account system - apply bonus
+    if (sWorld.getConfig(CONFIG_BOOL_PREMIUM_ACCOUNT_SYSTEM_ENABLED) && GetSession()->IsPremium() && GetSession()->HasGoldPremiumBonus())
+        ModifyMoney(pQuest->GetRewOrReqMoney() * sWorld.getConfig(CONFIG_UINT32_PREMIUM_GOLD_BONUS));
+    else
+        ModifyMoney(pQuest->GetRewOrReqMoney());
 
     // honor reward
     if (pQuest->GetRewHonorableKills())
@@ -14336,6 +14366,16 @@ void Player::SendQuestReward(Quest const* pQuest, uint32 XP, Object* /*questGive
             data << uint32(0) << uint32(0);
     }
     GetSession()->SendPacket(&data);
+    // Premium account system - apply bonus (only if is a reputation gain, not a loss)
+    if (sWorld.getConfig(CONFIG_BOOL_PREMIUM_ACCOUNT_SYSTEM_ENABLED) && GetSession()->IsPremium() && GetSession()->HasGoldPremiumBonus())
+    {
+        int32 bonusMoney = 0;
+        if (getLevel() < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+            bonusMoney = int32(pQuest->GetRewOrReqMoney() * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY) * sWorld.getConfig(CONFIG_UINT32_PREMIUM_GOLD_BONUS));
+        else
+            bonusMoney = int32(pQuest->GetRewOrReqMoney() + int32(pQuest->GetRewMoneyMaxLevel() * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY)) * sWorld.getConfig(CONFIG_UINT32_PREMIUM_GOLD_BONUS));
+        ChatHandler(this).PSendSysMessage(LANG_PREMIUM_QUEST_REWARD, int32((bonusMoney - (((bonusMoney % 10000) - (bonusMoney % 100)) / 100)) / 10000), int32(((bonusMoney % 10000) - (bonusMoney % 100)) / 100), int32(bonusMoney % 100));
+    }
 }
 
 void Player::SendQuestFailed(uint32 quest_id)
