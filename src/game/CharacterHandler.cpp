@@ -542,12 +542,6 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
             data << str_motd.substr(pos);
             ++linecount;
         }
-
-        if (sWorld.getConfig(CONFIG_BOOL_PREMIUM_ACCOUNT_SYSTEM_ENABLED) && pCurrChar->GetSession()->IsPremium())
-        {
-            data << std::string(GetMangosString(LANG_PREMIUM_ACCOUNT_ACTIVE));
-            ++linecount;
-        }
         
         data.put(0, linecount);
 
@@ -715,6 +709,9 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
         if (invisibleAuraInfo && IsSpellAppliesAura(invisibleAuraInfo))
             pCurrChar->CastSpell(pCurrChar, invisibleAuraInfo, true);
     }
+
+    // Send premium notification
+    pCurrChar->SendPremiumNotificationAtLogin();
 
     std::string IP_str = GetRemoteAddress();
     sLog.outChar("Account: %d (IP: %s) Login Character:[%s] (guid: %u)",

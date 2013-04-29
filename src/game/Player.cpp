@@ -14366,12 +14366,12 @@ void Player::SendQuestReward(Quest const* pQuest, uint32 XP, Object* /*questGive
             data << uint32(0) << uint32(0);
     }
     GetSession()->SendPacket(&data);
-    // Premium account system - apply bonus (only if is a reputation gain, not a loss)
+    // Premium account system - send details about premium bonus
     if (sWorld.getConfig(CONFIG_BOOL_PREMIUM_ACCOUNT_SYSTEM_ENABLED) && GetSession()->IsPremium() && GetSession()->HasGoldPremiumBonus())
     {
         int32 bonusMoney = 0;
         if (getLevel() < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
-            bonusMoney = int32(pQuest->GetRewOrReqMoney() * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY) * sWorld.getConfig(CONFIG_UINT32_PREMIUM_GOLD_BONUS));
+            bonusMoney = int32((pQuest->GetRewOrReqMoney() * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY) * sWorld.getConfig(CONFIG_UINT32_PREMIUM_GOLD_BONUS)) - pQuest->GetRewOrReqMoney());
         else
             bonusMoney = int32(pQuest->GetRewOrReqMoney() + int32(pQuest->GetRewMoneyMaxLevel() * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY)) * sWorld.getConfig(CONFIG_UINT32_PREMIUM_GOLD_BONUS));
         ChatHandler(this).PSendSysMessage(LANG_PREMIUM_QUEST_REWARD, int32((bonusMoney - (((bonusMoney % 10000) - (bonusMoney % 100)) / 100)) / 10000), int32(((bonusMoney % 10000) - (bonusMoney % 100)) / 100), int32(bonusMoney % 100));
@@ -21001,4 +21001,11 @@ bool Player::HasCharacterAtMaxLevel()
         delete result;
     }
     return hasCharAtMaxLevel;
+}
+
+// Premium account system
+void Player::SendPremiumNotificationAtLogin()
+{
+    if (GetSession()->IsPremium())
+        ChatHandler(this).PSendSysMessage(LANG_PREMIUM_ACCOUNT_ACTIVE);
 }

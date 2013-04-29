@@ -2151,6 +2151,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint8 GetXpRate() { return m_xpRate; }
         void SetXpRate(uint8 xp) { m_xpRate = xp; }
         bool HasCharacterAtMaxLevel();
+        // Premium account system
+        void SendPremiumNotificationAtLogin();
 
     protected:
 
